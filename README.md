@@ -46,8 +46,9 @@ One service, one volume. The image ships `claude`, `codex`, `git`, `gh`, Node 24
 Notes and limits:
 
 - You are root. Anything you install outside `/root` disappears on redeploy; anything under `/root` stays. New Claude Code and Codex versions arrive as template updates.
-- 0.5 GB of RAM runs the shell and an idle agent; give the service 1 GB or more when an agent builds Node or Python projects.
+- 0.5 GB of RAM runs the shell and both agents idle; give the service 1 GB or more when an agent builds Node or Python projects.
 - Codex's own command sandbox (bubblewrap) cannot start in Railway's container, so the box writes `sandbox_mode = "danger-full-access"` to `~/.codex/config.toml` on first boot: Codex runs commands directly, and the container is the boundary. Edit that file to change it; it is never overwritten.
+- The same file turns off Codex's background app-server daemon (`daemon_auto_start = false`). Its first start copies 424 MB into `~/.codex/packages` and needs about 1 GB of memory, which a small service does not have. Set it to `true` on a bigger service if you want remote control.
 - There is no Docker daemon inside the box.
 - The web terminal password is the whole security model for a root shell. Keep it strong and do not share the URL.
 

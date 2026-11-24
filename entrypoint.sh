@@ -88,6 +88,13 @@ if mkdir -p /root/.codex && [ ! -f /root/.codex/config.toml ]; then
 # Railway's container (no user namespaces), so it runs unsandboxed inside the box.
 sandbox_mode = "danger-full-access"
 approval_policy = "on-request"
+
+# On first start Codex copies itself (424 MB) into ~/.codex/packages for its background
+# app-server daemon. That copy takes about 1 GB of memory while it runs, so a 0.5 GB
+# service kills Codex before it opens, and it nearly fills a 0.5 GB volume. Off here;
+# set it to true on a bigger service if you use the daemon (remote control).
+[features]
+daemon_auto_start = false
 TOML
 fi
 
