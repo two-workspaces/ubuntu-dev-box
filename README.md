@@ -2,11 +2,11 @@
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/ubuntu-dev-box?referralCode=sLjDXb&utm_medium=integration&utm_source=button&utm_campaign=ubuntu-dev-box)
 
-This template gives you an always-on Ubuntu 26.04 dev box with [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and the [OpenAI Codex CLI](https://github.com/openai/codex) pre-installed. Open your Railway domain for a terminal in the browser, or SSH in through Railway's TCP proxy. Both land in the same `tmux` session, so a job you start from your laptop is still running when you reconnect from your phone. Your home directory lives on a volume, so repos, agent logins, GitHub auth and dotfiles survive every redeploy.
+This template gives you an always-on Ubuntu 26.04 dev box with [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and the [OpenAI Codex CLI](https://github.com/openai/codex) pre-installed. Open your Railway domain for a terminal in the browser, or SSH in through Railway's TCP proxy. The browser terminal is a `tmux` session, so a job you start from your laptop is still running when you reconnect from your phone. Your home directory lives on a volume, so repos, agent logins, GitHub auth and dotfiles survive every redeploy.
 
 ## About Hosting an Ubuntu Dev Box
 
-One service, one volume. The image ships `claude`, `codex`, `git`, `gh`, Node 24, Python 3 + `uv`, `tmux`, `ripgrep`, `jq`, `vim`, build tools and an OpenSSH server. A `ttyd` web terminal (basic-auth gated) and `sshd` (password or key) both drop you into the same `tmux` session. SSH host keys are stored on the volume, so your client never sees a "host key changed" warning after a redeploy. Both agents are optional: the box is a plain Ubuntu shell until you sign one in.
+One service, one volume. The image ships `claude`, `codex`, `git`, `gh`, Node 24, Python 3 + `uv`, `tmux`, [`tuios`](https://github.com/Gaurav-Gosain/tuios), `ripgrep`, `jq`, `vim`, build tools and an OpenSSH server. A `ttyd` web terminal (basic-auth gated) opens a `tmux` session named `main`; `sshd` (password or key) gives you a shell, and `tmux attach -t main` joins the same session. SSH host keys are stored on the volume, so your client never sees a "host key changed" warning after a redeploy. Both agents are optional: the box is a plain Ubuntu shell until you sign one in.
 
 ## Common Use Cases
 
@@ -24,6 +24,7 @@ One service, one volume. The image ships `claude`, `codex`, `git`, `gh`, Node 24
 - [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code)
 - [Codex CLI](https://github.com/openai/codex) and [its docs](https://developers.openai.com/codex)
 - [ttyd](https://github.com/tsl0922/ttyd) web terminal
+- [tuios](https://github.com/Gaurav-Gosain/tuios) terminal window manager
 - [GitHub CLI](https://cli.github.com/)
 
 ### Implementation Details
@@ -41,11 +42,12 @@ One service, one volume. The image ships `claude`, `codex`, `git`, `gh`, Node 24
 
 - `cl` and `cx` start Claude Code and Codex inside detachable `tmux` sessions named `claude` and `codex`; `tmux attach -t claude` resumes one
 - `gh auth login` or set `GH_TOKEN` to push to GitHub
+- `tuios` opens a tiling window manager with one inbox for every coding agent. Set `MULTIPLEXER=tuios` to make the browser terminal open it instead of `tmux`; started by hand inside `tmux`, its Ctrl+B prefix needs pressing twice
 - `apt install <pkg>` works (you are root); anything outside `/root` is gone after a redeploy
 
 Notes and limits:
 
-- You are root. Anything you install outside `/root` disappears on redeploy; anything under `/root` stays. New Claude Code and Codex versions arrive as template updates.
+- You are root. Anything you install outside `/root` disappears on redeploy; anything under `/root` stays. New Claude Code, Codex and tuios versions arrive as template updates.
 - 0.5 GB of RAM runs the shell and both agents idle; give the service 1 GB or more when an agent builds Node or Python projects.
 - Codex's own command sandbox (bubblewrap) cannot start in Railway's container, so the box writes `sandbox_mode = "danger-full-access"` to `~/.codex/config.toml` on first boot: Codex runs commands directly, and the container is the boundary. Edit that file to change it; it is never overwritten.
 - The same file turns off Codex's background app-server daemon (`daemon_auto_start = false`). Its first start copies 424 MB into `~/.codex/packages` and needs about 1 GB of memory, which a small service does not have. Set it to `true` on a bigger service if you want remote control.

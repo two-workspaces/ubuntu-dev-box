@@ -4,6 +4,7 @@
   claude        Claude Code (first run: /login, or set CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY)
   codex         Codex CLI (first run: codex login --device-auth, or set OPENAI_API_KEY)
   cl / cx       the same, inside a detachable tmux session (tmux attach -t claude / codex)
+  tuios         tiling window manager for agents (inside tmux, press its Ctrl+B prefix twice)
   gh auth login GitHub CLI (or set GH_TOKEN)
   ~/            persisted on the volume (repos, logins, dotfiles survive redeploys)
 

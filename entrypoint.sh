@@ -145,9 +145,19 @@ if [ -z "$web_pass" ]; then
   log "set the WEB_PASSWORD variable to keep one that survives restarts"
 fi
 
-echo "== dev-box ready: web terminal on :${PORT}, sshd on :22, claude $(claude --version 2>/dev/null), $(codex --version 2>/dev/null)"
-# Web terminal: ttyd with basic auth, each tab attaches to the same tmux session, in ~.
+# What the web terminal opens: tmux (default) or tuios. Either way every tab attaches to
+# the same session, named main. tuios draws with plain characters here, because the
+# browser terminal has no Nerd Font; if it fails to start, the tab falls back to tmux.
+mux=$(printf '%s' "${MULTIPLEXER:-tmux}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+case "$mux" in
+  tuios) term_cmd='tuios attach -c main --ascii-only || exec tmux new -A -s main' ;;
+  tmux|'') mux=tmux; term_cmd='exec tmux new -A -s main' ;;
+  *) log "MULTIPLEXER='${MULTIPLEXER}' is not tmux or tuios, using tmux"; mux=tmux; term_cmd='exec tmux new -A -s main' ;;
+esac
+
+echo "== dev-box ready: web terminal on :${PORT} ($mux), sshd on :22, claude $(claude --version 2>/dev/null), $(codex --version 2>/dev/null), $(tuios --version 2>/dev/null | head -1)"
+# Web terminal: ttyd with basic auth, each tab attaches to the same session, in ~.
 cd /root
 exec ttyd -i 127.0.0.1 -p "$TTYD_PORT" -W -c "$web_user:$web_pass" \
   -t titleFixed="dev-box" -t fontSize=14 \
-  bash -lc 'exec tmux new -A -s main'
+  bash -lc "$term_cmd"

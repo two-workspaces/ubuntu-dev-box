@@ -30,6 +30,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && claude --version && codex --version \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# tuios: a tiling terminal window manager that tracks what coding agents are doing.
+# One static binary from its release, checked against the release's checksum list.
+# upgrade: github Gaurav-Gosain/tuios
+ARG TUIOS_VERSION=v0.13.3
+RUN v="${TUIOS_VERSION#v}" && cd /tmp \
+  && curl -fsSLO "https://github.com/Gaurav-Gosain/tuios/releases/download/${TUIOS_VERSION}/tuios_${v}_Linux_x86_64.tar.gz" \
+  && curl -fsSL "https://github.com/Gaurav-Gosain/tuios/releases/download/${TUIOS_VERSION}/checksums.txt" \
+       | grep " tuios_${v}_Linux_x86_64.tar.gz\$" | sha256sum -c - \
+  && tar xzf "tuios_${v}_Linux_x86_64.tar.gz" -C /usr/local/bin tuios \
+  && rm -f "tuios_${v}_Linux_x86_64.tar.gz" \
+  && tuios --version
+
 # Skeleton for the persistent home (the volume mounts empty at /root on first boot).
 COPY skel/ /opt/skel/
 COPY entrypoint.sh /entrypoint.sh
